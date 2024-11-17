@@ -19,7 +19,7 @@ figure;
 imshow(fond) ;
 viscircles(centersFond, radiiFond, 'EdgeColor', 'b');
 
-%% Traitement de l'image
+%% Traitement de l'image du tour 1
 img = imread("Images\Image1.jpg");
 enhancedImage = imadjust(rgb2gray(img));
 
@@ -58,5 +58,22 @@ end
 
 hold off;
 
-%% Logique tour 2
+%% Logique tours suivants
+
+centersFond(end, :) = [] ;
+%%
+size(centersFond,1) 
+centersFond
+%%
+
+img = imread("Images\Image2.jpg") ;
+[centresPasDansFond, radiiPasDansFond] = tour(img, centresPasDansFond, radiiPasDansFond, centersFond) ;
+
+for i = 2:9
+    % Créer le nom du fichier pour chaque image
+    disp(i) ;
+    filename = sprintf('Images\Image%d.jpg', i);
+
+    [centresPasDansFond, radiiPasDansFond] = tour(img, centresPasDansFond, centersFond, radiiFond) ;
+end
 
