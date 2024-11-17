@@ -33,6 +33,55 @@ viscircles(centers(indMax, :), radii(indMax), 'EdgeColor', 'b');
 plot(centers(1,1), centers(1,2), 'r+', 'MarkerSize', 15, 'LineWidth', 2); % Seulement pour vérifier l'algo mais pas utile dans le proto.
 hold off;
 
-%%
-clear all ;
-close all;
+
+%% Cas trépied
+
+%% Traitement du fond
+fond = imread("Images\Image1.jpg");
+enhancedFond = imadjust(rgb2gray(fond));
+
+[centersFond, radiiFond] = imfindcircles(enhancedFond, [90 180], 'ObjectPolarity', 'bright', 'Sensitivity', 0.95);
+
+figure;
+imshow(fond) ;
+viscircles(centersFond, radiiFond, 'EdgeColor', 'b');
+
+%% Traitement de l'image
+img = imread("Images\Image1.jpg");
+enhancedImage = imadjust(rgb2gray(img));
+
+figure; 
+imshow(enhancedImage);
+
+[centers, radii] = imfindcircles(enhancedImage, [90 180], 'ObjectPolarity', 'bright', 'Sensitivity', 0.95);
+
+figure;
+imshow(img) ;
+viscircles(centers, radii, 'EdgeColor', 'b');
+
+%% Retrait des cercles communs avec le fond
+
+% Tolérance de deux pixels pour trouver les centres communs
+tol = 2;
+distances = pdist2(centers, centersFond); % Matrice des distances entre cercles
+estDansFond = any(distances < tol, 2); % Cercles communs au fond
+
+% Récupération des centres et rayons pas dans le fond
+centresPasDansFond = centers(~estDansFond, :);
+radiiPasDansFond = radii(~estDansFond);
+
+%% Affichage de la solution
+figure;
+imshow(img);
+hold on;
+viscircles(centresPasDansFond, radiiPasDansFond, 'EdgeColor', 'b');
+
+% Remplissage des cercles détectés pour l'esthétique
+for i = 1:size(centresPasDansFond, 1)
+    theta = linspace(0, 2*pi, 100);
+    x = centresPasDansFond(i, 1) + radiiPasDansFond(i) * cos(theta);
+    y = centresPasDansFond(i, 2) + radiiPasDansFond(i) * sin(theta);
+    fill(x, y, 'b', 'FaceAlpha', 0.3, 'EdgeColor', 'none'); % Rond plein bleu semi-transparent
+end
+
+hold off;
