@@ -1,10 +1,10 @@
 function indices = indOverlap(centerNew, r1,centers, radiis)
 
-distances = pdist2(centerNew, centers) ;
+distances = distance2(centerNew, centers) ;
 indices = [] ;
 A_NewCircle = pi*r1^2 ;
 
-for i = 1:length(distances)
+for i = 1:length(radiis)
     d = distances(i) ;
     r2 = radiis(i) ;
     
@@ -16,7 +16,7 @@ for i = 1:length(distances)
 
     A_intersection = (r1^2 * term1) + (r2^2 * term2) - term3;
 
-    if A_intersection > 0.1*A_NewCircle
+    if A_intersection > 0.05*A_NewCircle
         indices(end+1) = i ;
     end
     

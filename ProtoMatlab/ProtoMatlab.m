@@ -6,74 +6,81 @@
 
 % Ici on se place dans le cas ou la cible est uniquement virtuelle.
 
-%% Traitement du fond
-fond = imread("Images\Image1.jpg");
-enhancedFond = imadjust(rgb2gray(fond));
+%% Test avec une image
+fond1 = imread("ImagesTrepiedTest\Fond.jpeg") ;
+img = imread("ImagesTrepiedTest\Trepied1_3.jpeg") ;
 
 figure; 
-imshow(enhancedFond);
+imshow(img)
 
-[centersFond, radiiFond] = imfindcircles(enhancedFond, [90 180], 'ObjectPolarity', 'bright', 'Sensitivity', 0.95);
+gray_fond = rgb2gray(fond1) ;
+gray_img = rgb2gray(img) ;
 
-figure;
-imshow(fond) ;
-viscircles(centersFond, radiiFond, 'EdgeColor', 'b');
+sansFond = imabsdiff(img, fond1) ;
+sansFond = imadjust(rgb2gray(sansFond)) ;
+figure ;
+imshow(sansFond) ;
 
-%% Traitement de l'image du tour 1
-img = imread("Images\Image1.jpg");
-enhancedImage = imadjust(rgb2gray(img));
 
-figure; 
-imshow(enhancedImage);
-
-[centers, radii] = imfindcircles(enhancedImage, [90 180], 'ObjectPolarity', 'bright', 'Sensitivity', 0.95);
+[centers, radii] = imfindcircles(sansFond, [10 20], 'ObjectPolarity', 'bright', 'Sensitivity', 0.95);
 
 figure;
 imshow(img) ;
 viscircles(centers, radii, 'EdgeColor', 'b');
 
-%% Retrait des cercles communs avec le fond
-% Tolérance de deux pixels pour trouver les centres communs
-tol = 2;
-distances = pdist2(centers, centersFond); % Matrice des distances entre cercles
-estDansFond = any(distances < tol, 2); % Cercles communs au fond
+%% Logique de jeu
 
-% Récupération des centres et rayons pas dans le fond
-centresPasDansFond = centers(~estDansFond, :);
-radiiPasDansFond = radii(~estDansFond);
+% Initialisation des variables
+fond1 = imread("ImagesTrepiedTest\Fond.jpeg") ;
+fond2 = imread("ImagesTrepiedTest\Fond2.jpeg") ;
 
-%% Affichage de la solution
-figure;
-imshow(img);
-hold on;
-viscircles(centresPasDansFond, radiiPasDansFond, 'EdgeColor', 'b');
+centresPieces = [] ;
+radiiPieces = [] ;
 
-% Remplissage des cercles détectés pour l'esthétique
-for i = 1:size(centresPasDansFond, 1)
-    theta = linspace(0, 2*pi, 100);
-    x = centresPasDansFond(i, 1) + radiiPasDansFond(i) * cos(theta);
-    y = centresPasDansFond(i, 2) + radiiPasDansFond(i) * sin(theta);
-    fill(x, y, 'b', 'FaceAlpha', 0.8, 'EdgeColor', 'none'); % Rond plein bleu semi-transparent
+cible = [339, 207] ;
+distancesCible = [] ;
+
+% Affichage de la cible
+figure ;
+imshow(fond1) ;
+hold on ;
+plot(cible(1), cible(2), '+r', 'MarkerSize',15) ;
+hold off ;
+
+
+for i = 1:6
+    filename = fullfile('ImagesTrepiedTest', sprintf('Trepied1_%d.jpeg', i));
+    img = imread(filename);
+
+    [nouveauxCentres, nouveauxRadii, nouvellesDistances] = tour(img, fond1, centresPieces, radiiPieces, cible, distancesCible, 1) ;
+    centresPieces = nouveauxCentres ; 
+    radiiPieces = nouveauxRadii ;
+    distancesCible = nouvellesDistances ;
 end
 
-hold off;
+%% 2e série d'image
+fond2 = imread("ImagesTrepiedTest\Fond2.jpeg") ;
 
-%% Logique tours suivants
+centresPieces = [] ;
+radiiPieces = [] ;
 
-centersFond(end, :) = [] ;
-%%
-size(centersFond,1) 
-centersFond
-%%
+cible = [339, 207] ;
+distancesCible = [] ;
 
-img = imread("Images\Image2.jpg") ;
-[centresPasDansFond, radiiPasDansFond] = tour(img, centresPasDansFond, radiiPasDansFond, centersFond) ;
+% Affichage de la cible
+figure ;
+imshow(fond2) ;
+hold on ;
+plot(cible(1), cible(2), '+r', 'MarkerSize',15) ;
+hold off ;
 
-for i = 2:9
-    % Créer le nom du fichier pour chaque image
-    disp(i) ;
-    filename = sprintf('Images\Image%d.jpg', i);
 
-    [centresPasDansFond, radiiPasDansFond] = tour(img, centresPasDansFond, centersFond, radiiFond) ;
+for i = 2:7
+    filename = fullfile('ImagesTrepiedTest', sprintf('Trepied2_%d.jpeg', i));
+    img = imread(filename);
+
+    [nouveauxCentres, nouveauxRadii, nouvellesDistances] = tour(img, fond2, centresPieces, radiiPieces, cible, distancesCible, 2) ;
+    centresPieces = nouveauxCentres ; 
+    radiiPieces = nouveauxRadii ;
+    distancesCible = nouvellesDistances ;
 end
-
