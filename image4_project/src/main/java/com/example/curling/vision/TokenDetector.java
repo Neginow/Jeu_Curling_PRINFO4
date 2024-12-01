@@ -9,6 +9,10 @@ import org.opencv.core.Scalar;
 import org.opencv.imgproc.Imgproc;
 import org.opencv.core.Point;
 
+/*
+ * Classe qui permet de détecter la pièce chaque tour. Elle permet aussi de mettre a jour la liste des distances et des positions de l'ensemble des pièces. 
+ * Elle gère également les chevauchements.
+ */
 
 public class TokenDetector {
 	
@@ -20,6 +24,8 @@ public class TokenDetector {
 	
 	private List<Point> centers2 ;	// Centres détectés de l'équipe 2
 	private List<Integer> radius2 ;
+	
+	private GameManager gm ;
 	
 	public void detectToken(Mat frame, int currentPlayer) {
        // Initialisation
@@ -62,7 +68,7 @@ public class TokenDetector {
         	centers2.add(center) ;
         	radius2.add(radius) ;
         }
-        calculateDistance(center) ;
+        gm.calculateDistance(center) ;
         
         // Affichage des cercles
         displayCircles(frame) ;
@@ -99,19 +105,19 @@ public class TokenDetector {
 		for (Integer i : indices1) {
 			centers1.remove(i) ;
 			radius1.remove(i) ;
-			// Remove distance
+			gm.removeDistance(i, 1) ;
 		}
 		for (Integer i : indices2) {
 			centers1.remove(i) ;
 			radius1.remove(i) ;
-			// Remove distance
+			gm.removeDistance(i, 2);
 		}	
 	}
 	
 	private boolean overlapTest(Point newCenter, Integer newRadius, Point center, Integer radius) {
 		// Vérifie la condition de chevauchement, cercle à supprimer si renvoie true
 		Double A_newCircle = Math.PI* Math.pow(newRadius, 2) ;
-		Double dist = Math.sqrt(Math.pow(target.x - token.x, 2) + Math.pow(target.y - token.y, 2));
+		Double dist = Math.sqrt(Math.pow(newCenter.x - center.x, 2) + Math.pow(newCenter.y - center.y, 2));
 		
 		Double t1 = Math.acos((Math.pow(dist, 2) + Math.pow(newRadius, 2) - Math.pow(radius, 2))/(2*dist*newRadius)) ;
 		Double t2 = Math.acos((Math.pow(dist, 2) + Math.pow(radius, 2) - Math.pow(newRadius, 2))/(2*dist*radius)) ;

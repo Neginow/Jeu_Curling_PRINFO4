@@ -4,6 +4,11 @@ import org.opencv.core.Point;
 import java.util.ArrayList;
 import java.util.List;
 
+/*
+ * Classe qui gère le score de la manche et le score de la partie. 
+ * Elle contient les scores, la position de la cible, à qui est le tour de jouer ainsi que les listes des distances à la cible pour calculer le score.
+ */
+
 public class GameManager {
 
 	private int scoreGameP1 ;
@@ -42,6 +47,15 @@ public class GameManager {
 		}
 		else {
 			distance2.add(newDist) ;
+		}
+	}
+	
+	public void removeDistance(Integer i, int player) {
+		if (player==1) {
+			distance1.remove(i) ;
+		}
+		else {
+			distance2.remove(i) ;
 		}
 	}
 }
