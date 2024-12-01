@@ -1,5 +1,5 @@
-# Created by https://www.toptal.com/developers/gitignore/api/java,maven,eclipse,linux
-# Edit at https://www.toptal.com/developers/gitignore?templates=java,maven,eclipse,linux
+# Created by https://www.toptal.com/developers/gitignore/api/eclipse,java,maven,opencv,matlab
+# Edit at https://www.toptal.com/developers/gitignore?templates=eclipse,java,maven,opencv,matlab
 
 ### Eclipse ###
 .metadata
@@ -93,20 +93,38 @@ local.properties
 hs_err_pid*
 replay_pid*
 
-### Linux ###
-*~
+### MATLAB ###
+# Windows default autosave extension
+*.asv
 
-# temporary files which can be created if a process still has a handle open of a deleted file
-.fuse_hidden*
+# OSX / *nix default autosave extension
+*.m~
 
-# KDE directory preferences
-.directory
+# Compiled MEX binaries (all platforms)
+*.mex*
 
-# Linux trash folder which might appear on any partition or disk
-.Trash-*
+# Packaged app and toolbox files
+*.mlappinstall
+*.mltbx
 
-# .nfs files are created when an open file is removed but is still being accessed
-.nfs*
+# Generated helpsearch folders
+helpsearch*/
+
+# Simulink code generation folders
+slprj/
+sccprj/
+
+# Matlab code generation folders
+codegen/
+
+# Simulink autosave extension
+*.autosave
+
+# Simulink cache files
+*.slxc
+
+# Octave session info
+octave-workspace
 
 ### Maven ###
 target/
@@ -127,4 +145,13 @@ buildNumber.properties
 # JDT-specific (Eclipse Java Development Tools)
 .classpath
 
-# End of https://www.toptal.com/developers/gitignore/api/java,maven,eclipse,linux
+### OpenCV ###
+#OpenCV for Mac and Linux
+#build and release folders
+*/CMakeFiles
+*/CMakeCache.txt
+*/Makefile
+*/cmake_install.cmake
+.DS_Store
+
+# End of https://www.toptal.com/developers/gitignore/api/eclipse,java,maven,opencv,matlab
