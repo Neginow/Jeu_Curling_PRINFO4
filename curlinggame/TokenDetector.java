@@ -14,107 +14,133 @@ import org.opencv.core.Point;
 import org.opencv.core.RotatedRect;
 
 public class TokenDetector {
-    
-    private Mat background;
-    private List<Integer> range;
 
-    public TokenDetector(Mat background, List<Integer> range) {
-    	setBackground(background);
-    	this.range = range;
-    }
+	private Mat background;
+	private List<Integer> range;
 
-    public void setBackground(Mat background) {
-        Mat grayFrame = new Mat();
-        Imgproc.cvtColor(background, grayFrame, Imgproc.COLOR_BGR2GRAY);
-        this.background = grayFrame.clone(); 
-    }
+	public TokenDetector(Mat background, List<Integer> range) {
+		setBackground(background);
+		this.range = range;
+	}
 
-    public Mat increaseContrast(Mat frame, double alpha, double beta) {
-        Mat result = new Mat();
-        frame.convertTo(result, -1, alpha, beta);
-        return result;
-    }
-    
-    public Mat detectTokenWithCanny(Mat frame) {
-        Mat grayFrame = new Mat();
-        Mat edges = new Mat();
+	public void setBackground(Mat background) {
+		Mat grayFrame = new Mat();
+		Imgproc.cvtColor(background, grayFrame, Imgproc.COLOR_BGR2GRAY);
+		this.background = grayFrame.clone();
+	}
 
-        Imgproc.cvtColor(frame, grayFrame, Imgproc.COLOR_BGR2GRAY);    
+	public Mat increaseContrast(Mat frame, double alpha, double beta) {
+		Mat result = new Mat();
+		frame.convertTo(result, -1, alpha, beta);
+		return result;
+	}
 
-        Core.absdiff(grayFrame, background, grayFrame);
+	public Mat detectTokenWithCanny(Mat frame) {
+		Mat grayFrame = new Mat();
+		Mat edges = new Mat();
 
-        Imgproc.Canny(grayFrame, edges, 50, 150);
+		Imgproc.cvtColor(frame, grayFrame, Imgproc.COLOR_BGR2GRAY);
 
-        List<MatOfPoint> contours = new ArrayList<>();
-        Imgproc.findContours(edges, contours, new Mat(), Imgproc.RETR_EXTERNAL, Imgproc.CHAIN_APPROX_SIMPLE);
+		Core.absdiff(grayFrame, background, grayFrame);
 
-        for (MatOfPoint contour : contours) {
-            MatOfPoint2f contour2f = new MatOfPoint2f(contour.toArray());
-            double contourArea = Imgproc.contourArea(contour);
-            if (contourArea > 15) {
-                RotatedRect ellipse = Imgproc.fitEllipse(contour2f);
-                if (Math.abs(ellipse.size.width - ellipse.size.height) / ellipse.size.width < 0.2) {
-                    Imgproc.ellipse(frame, ellipse, new Scalar(0, 255, 0), 3);
-                }
-            }
-        }
+		Imgproc.Canny(grayFrame, edges, 50, 150);
 
-        return frame;
-    }
+		List<MatOfPoint> contours = new ArrayList<>();
+		Imgproc.findContours(edges, contours, new Mat(), Imgproc.RETR_EXTERNAL, Imgproc.CHAIN_APPROX_SIMPLE);
 
-    public Mat detectToken(Mat frame) {
-        Mat grayFrame = new Mat();
-        Mat absDiff = new Mat();
-        Mat blurred = new Mat();
-        Mat circles = new Mat();
+		for (MatOfPoint contour : contours) {
+			MatOfPoint2f contour2f = new MatOfPoint2f(contour.toArray());
+			double contourArea = Imgproc.contourArea(contour);
+			if (contourArea > 15) {
+				RotatedRect ellipse = Imgproc.fitEllipse(contour2f);
+				if (Math.abs(ellipse.size.width - ellipse.size.height) / ellipse.size.width < 0.2) {
+					Imgproc.ellipse(frame, ellipse, new Scalar(0, 255, 0), 3);
+				}
+			}
+		}
+		return frame;
+	}
 
-        Imgproc.cvtColor(frame, grayFrame, Imgproc.COLOR_BGR2GRAY);
+	public Circle detectToken(Mat frame) {
+		Mat grayFrame = new Mat();
+		Mat absDiff = new Mat();
+		Mat blurred = new Mat();
+		Mat circles = new Mat();
 
-        Core.absdiff(grayFrame, background, absDiff);
+		Imgproc.cvtColor(frame, grayFrame, Imgproc.COLOR_BGR2GRAY);
 
-        Imgproc.GaussianBlur(absDiff, blurred, new org.opencv.core.Size(9, 9), 6);
-        Mat m = increaseContrast(blurred,10.0, 5.);
+		Core.absdiff(grayFrame, background, absDiff);
+
+		Imgproc.GaussianBlur(absDiff, blurred, new org.opencv.core.Size(9, 9), 6);
+		Mat m = increaseContrast(blurred, 10.0, 5.);
+
+		Imgproc.HoughCircles(m, circles, Imgproc.HOUGH_GRADIENT, 1.3, 30, 150, 30, 0, 200);
+
+		if (!circles.empty()) {
+			System.out.println("circles!");
+			double[] circleData = circles.get(0, 0);
+			if (circleData != null && circleData.length >= 3) {
+				int x = (int) circleData[0];
+				int y = (int) circleData[1];
+				int radius = (int) circleData[2];
+				return new Circle(new Point(x, y), radius);
+			}
+		}
+		return null;
+	}
+
+	public Mat displayCircles(Mat frame, List<Point> centers, List<Integer> radius, List<Boolean> teamid) {
+		if (centers.size() == radius.size() && radius.size() == teamid.size()) {
+			for (int i = 0; i < centers.size(); i++) {
+				int color1 = 255 * (teamid.get(i) ? 1 : 0);
+				int color2 = 255 * (!teamid.get(i) ? 1 : 0);
+				Imgproc.circle(frame, centers.get(i), radius.get(i), new Scalar(color1, 0, color2), -1);
+			}
+		} else {
+			System.err.println("il y a un probleme au niveau des tableaux!!!!");
+		}
+		return frame;
+	}
+
+	public Mat displayHud(Mat frame, int scoreGameP2, int scoreGameP1 ) {
+        int fontFace = Imgproc.FONT_HERSHEY_SIMPLEX;
+        double fontScale = 0.5;
+        int thickness = 1;
+
+        Point redTeamPosition = new Point(50, 50);
+        Point blueTeamPosition = new Point(frame.cols() - 200, 50);
         
-        Imgproc.HoughCircles(
-            m,            
-            circles,            
-            Imgproc.HOUGH_GRADIENT,
-            1.3,                
-            30,                 
-            150,                
-            30,                 
-            0,                  
-            0                   
+        Scalar redColor = new Scalar(0, 0, 255);
+        Scalar blueColor = new Scalar(255, 0, 0);
+
+        Imgproc.putText(frame, "Red Team: " + scoreGameP1, redTeamPosition, fontFace, fontScale, redColor, thickness);
+        Imgproc.putText(frame, "Blue Team: " + scoreGameP2, blueTeamPosition, fontFace, fontScale, blueColor, thickness);
+
+        return frame; // uselless mais bon peut servir ...
+    }
+
+    public Mat displayTarget(Mat frame, Point target) {
+        int crossSize = 20; 
+        Scalar greenColor = new Scalar(0, 255, 0); 
+        int thickness = 2;
+
+        Imgproc.line(
+            frame, 
+            new Point(target.x - crossSize, target.y), 
+            new Point(target.x + crossSize, target.y),
+            greenColor, 
+            thickness
         );
- 
-        if (!circles.empty()) {
-        	System.out.println("circles!");
-            for (int i = 0; i < circles.cols(); i++) {
-                double[] circleData = circles.get(0, i);
-                if (circleData != null && circleData.length >= 3) {
-                    int x = (int) circleData[0];
-                    int y = (int) circleData[1];
-                    int radius = (int) circleData[2];
 
-                    Imgproc.circle(frame, new Point(x, y), radius, new Scalar(0, 255, 0), 3);
-                    Imgproc.circle(frame, new Point(x, y), 3, new Scalar(0, 0, 255), 3);
-                }
-            }
-        } else {
-        }
-        return frame;
+        Imgproc.line(
+            frame, 
+            new Point(target.x, target.y - crossSize), 
+            new Point(target.x, target.y + crossSize), 
+            greenColor, 
+            thickness
+        );
+
+        return frame; // uselless mais bon ...
     }
 
-    public Mat displayCircles(Mat frame, List<Point> centers, List<Integer> radius, List<Boolean> teamid) {
-    	if (centers.size() == radius.size() && radius.size() == teamid.size()) {
-    	    for (int i = 0; i < centers.size(); i++) {
-    	        int color1 = 255 * (teamid.get(i) ? 1 : 0);
-    	        int color2 = 255 * (!teamid.get(i) ? 1 : 0);
-    	        Imgproc.circle(frame, centers.get(i), radius.get(i), new Scalar(color1, 0, color2), -1);
-    	    }
-    	} else {
-    	    System.err.println("Mismatched input sizes for displayCircles!");
-    	}
-    	return frame;
-    }
 }
