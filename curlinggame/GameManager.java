@@ -1,93 +1,139 @@
 package testopenCV;
 
-
 import org.opencv.core.Point;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
-/*
- * Classe qui gère le score de la manche et le score de la partie. 
- * Elle contient les scores, la position de la cible, à qui est le tour de jouer ainsi que les listes des distances à la cible pour calculer le score.
- */
 
 public class GameManager {
 
-	private int scoreGameP1;
-	private int scoreGameP2;
+	public int scoreGameRED;
+    public int scoreGameBLUE;
 
-	private Point target;
-	
-	private List<Point> centers;	
-	private List<Integer> radius;
-	private List<Boolean> teamid;
-	
+    private Point target;
+
+    private final List<Point> centers;
+    private final List<Integer> radius;
+    private final List<Boolean> teamid;
+    private int turnCounts;
+    
     
     public GameManager() {
-    	target  = new Point(0,0);
-    	centers = new ArrayList<>();
-    	radius  = new ArrayList<>();
-    	teamid  = new ArrayList<>();
-    	scoreGameP1 = 0;
-    	scoreGameP2 = 0;
+        this.target = new Point(0, 0);
+        this.centers = Collections.synchronizedList(new ArrayList<>());
+        this.radius = Collections.synchronizedList(new ArrayList<>());
+        this.teamid = Collections.synchronizedList(new ArrayList<>());
+        this.scoreGameRED = 0;
+        this.scoreGameBLUE = 0;
+        turnCounts = 0;
     }
+
+    public GameManager(Point initialTarget) {
+        this.target = initialTarget;
+        this.centers = Collections.synchronizedList(new ArrayList<>());
+        this.radius = Collections.synchronizedList(new ArrayList<>());
+        this.teamid = Collections.synchronizedList(new ArrayList<>());
+        this.scoreGameRED = 0;
+        this.scoreGameBLUE = 0;
+        turnCounts = 0;
+    }
+
+
+    private int circlesOverlapping(Point center, Integer radius) {
+        for (int i = 0; i < centers.size(); i++) {
+            if (twoCirclesOverlapping(center, radius, this.centers.get(i), this.radius.get(i))) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    private boolean twoCirclesOverlapping(Point newCenter, Integer newRadius, Point center, Integer radius) {
+        if (newRadius == 0 || radius == 0) return false;
         
-	public void scoreCaclul() {
-		
-	}
+        double dist = Math.sqrt(Math.pow(newCenter.x - center.x, 2) + Math.pow(newCenter.y - center.y, 2));
+        if (dist >= newRadius + radius) return false;
+        
+        double A_newCircle = Math.PI * Math.pow(newRadius, 2);
+        double t1 = Math.acos((Math.pow(dist, 2) + Math.pow(newRadius, 2) - Math.pow(radius, 2)) / (2 * dist * newRadius));
+        double t2 = Math.acos((Math.pow(dist, 2) + Math.pow(radius, 2) - Math.pow(newRadius, 2)) / (2 * dist * radius));
+        double t3 = (radius + newRadius - dist) * (dist + newRadius - radius) * (dist - newRadius + radius) * (dist + newRadius + radius);
+        t3 = Math.sqrt(t3) / 2;
 
-	public int overlap(Point center, Integer radius) {
-		//for (int i = 0; i < )
-		
-		
-		return -1;
-	}
-	
-	private boolean overlapTest(Point newCenter, Integer newRadius, Point center, Integer radius) {
-		Double A_newCircle = Math.PI* Math.pow(newRadius, 2);
-		Double dist = Math.sqrt(Math.pow(newCenter.x - center.x, 2) + Math.pow(newCenter.y - center.y, 2));
-		
-		Double t1 = Math.acos((Math.pow(dist, 2) + Math.pow(newRadius, 2) - Math.pow(radius, 2))/(2*dist*newRadius));
-		Double t2 = Math.acos((Math.pow(dist, 2) + Math.pow(radius, 2) - Math.pow(newRadius, 2))/(2*dist*radius));
-		
-		Double t3 = (radius + newRadius - dist)*(dist + newRadius - radius)*(dist - newRadius + radius)*(dist + newRadius + radius) ;
-		t3 = Math.sqrt(t3)/2 ;
-		
-		Double A_intersection = (Math.pow(newRadius, 2)*t1) + (Math.pow(radius, 2)*t2) - t3 ;
-		
-		return A_intersection > 0.05 * A_newCircle ;
-	}
+        double A_intersection = (Math.pow(newRadius, 2) * t1) + (Math.pow(radius, 2) * t2) - t3;
+        return A_intersection > 0.05 * A_newCircle;
+    }
+    private Double dist(Point A, Point B){
+    	
+    	return Math.sqrt(Math.pow(A.x - B.x, 2) + Math.pow(A.y - B.y, 2));
+    }
+    public void removeCircle(int i) {
+        centers.remove(i);
+        radius.remove(i);
+        teamid.remove(i);
+    }
 
-	
-	public Double calculateDistance(Point token) {
-		return Math.sqrt(Math.pow(target.x - token.x, 2) + Math.pow(target.y - token.y, 2));
-	}
-	
-	public void removeDistance(int i) {
-		centers.remove(i);
-		radius.remove(i);
-		teamid.remove(i);
-	}
-	
-	public void addCircle(Point newCenter, Integer newRadius) {
-		int v = overlap(newCenter, newRadius);
-		// on verifie si il y a un cercle par dessus l'autre
-		if (v > 0) {
-			//removeDistance();
-		}
-		
-	}
-	
-	public List<Point> getCenters() {
-		return centers;
-	}
+    public void addCircle(Point newCenter, Integer newRadius) {
+        int v = circlesOverlapping(newCenter, newRadius);
+        if (v >= 0) {
+            removeCircle(v);
+        }
+        centers.add(newCenter);
+        radius.add(newRadius);
+        teamid.add(turnCounts % 2 == 0);
+        turnCounts++;
+    }
+    
+    public boolean getWinner() {
+        if (centers.isEmpty()) {
+            throw new IllegalStateException("No centers available to determine a winner.");
+        }
 
-	public List<Integer> getRadius() {
-		return radius;
-	}
+        int minIndex = 0; 
+        double minDistance = 1000000;
+        for (int i = 1; i < centers.size(); i++) {
+            double distance = dist(centers.get(i), target);
+            if (distance < minDistance) {
+                minDistance = distance;
+                minIndex = i;
+            }
+        }
 
-	public List<Boolean> getTeamid() {
-		return teamid;
-	}
+        return teamid.get(minIndex); 
+    }
 
+    public void update() {
+        if (turnCounts == 16) {
+        	turnCounts = 0;
+        	if(getWinner()) {
+        		scoreGameRED ++;
+        	} else {
+        		scoreGameBLUE ++;
+        	}
+        	centers.clear();
+        	radius.clear();
+        	teamid.clear();
+        }
+    }
+    
+    public List<Point> getCenters() {
+        return new ArrayList<>(centers);
+    }
 
+    public List<Integer> getRadius() {
+        return new ArrayList<>(radius);
+    }
+
+    public List<Boolean> getTeamid() {
+        return new ArrayList<>(teamid);
+    }
+
+    public void setTarget(Point target) {
+        this.target = target;
+    }
+
+    public Point getTarget() {
+        return target;
+    }
 }
