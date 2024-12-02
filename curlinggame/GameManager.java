@@ -87,7 +87,7 @@ public class GameManager {
     
     public boolean getWinner() {
         if (centers.isEmpty()) {
-            throw new IllegalStateException("No centers available to determine a winner.");
+            throw new IllegalStateException("Normalement impossible de voir ce message");
         }
 
         int minIndex = 0; 
