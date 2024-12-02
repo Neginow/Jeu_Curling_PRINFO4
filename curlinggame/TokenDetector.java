@@ -9,34 +9,28 @@ import org.opencv.core.Point;
 
 public class TokenDetector {
     
-    private Mat background;  // background in grayscale
-    private List<Integer> range;  // search range for HoughCircles
+    private Mat background;
+    private List<Integer> range;
 
     public TokenDetector(Mat background, List<Integer> range) {
     	setBackground(background);
     	this.range = range;
     }
 
-    // Set a new background (useful if it needs to be updated during runtime)
     public void setBackground(Mat background) {
         Mat grayFrame = new Mat();
         Imgproc.cvtColor(background, grayFrame, Imgproc.COLOR_BGR2GRAY);
         this.background = grayFrame;
     }
 
-    // Detect a token in the given frame (returns a Circle object)
     public Circle detectToken(Mat frame) {
         Mat grayFrame = new Mat();
         Mat absDiff = new Mat();
         Mat circles = new Mat();
         
-        // Convert the frame to grayscale
-        Imgproc.cvtColor(frame, grayFrame, Imgproc.COLOR_BGR2GRAY);
-        
-        // Compute absolute difference with the background
+        Imgproc.cvtColor(frame, grayFrame, Imgproc.COLOR_BGR2GRAY);    
         Core.absdiff(grayFrame, background, absDiff);
 
-        // Detect circles using HoughCircles
         Imgproc.HoughCircles(
         		absDiff,
                 circles,
@@ -49,13 +43,11 @@ public class TokenDetector {
                 this.range.get(1)           // Max radius
         );
 
-        // Check if any circles are detected
         if (circles.empty()) {
             //System.out.println("No circles detected.");
-            return null;  // No circle detected
+            return null;  
         }
 
-        // Retrieve the first circle's data (assuming only one circle is detected)
         double[] coords = circles.get(0, 0);
         if (coords == null || coords.length < 3) {
             throw new IllegalStateException("Invalid circle data detected!");
@@ -64,11 +56,9 @@ public class TokenDetector {
         Point center = new Point(coords[0], coords[1]); 
         int radius = (int) coords[2];
 
-        // Return the detected circle
         return new Circle(center, radius);
     }
 
-    // Display detected circles (for visualization)
     public Mat displayCircles(Mat frame, List<Point> centers, List<Integer> radius, List<Boolean> teamid) {
     	if (centers.size() == radius.size() && radius.size() == teamid.size()) {
     	    for (int i = 0; i < centers.size(); i++) {
