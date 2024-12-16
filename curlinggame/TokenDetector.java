@@ -9,6 +9,7 @@ import org.opencv.core.MatOfPoint2f;
 import org.opencv.core.Scalar;
 import org.opencv.core.Size;
 import org.opencv.highgui.HighGui;
+import org.opencv.imgproc.CLAHE;
 import org.opencv.imgproc.Imgproc;
 import org.opencv.core.Point;
 import org.opencv.core.RotatedRect;
@@ -62,31 +63,45 @@ public class TokenDetector {
 	}
 
 	public Circle detectToken(Mat frame) {
-		Mat grayFrame = new Mat();
-		Mat absDiff = new Mat();
-		Mat blurred = new Mat();
-		Mat circles = new Mat();
+	    Mat grayFrame = new Mat();
+	    Mat blackHat = new Mat();
+	    Mat blurred = new Mat();
+	    Mat background = new Mat();
+	    Mat circles = new Mat();
+	    Mat morphKernel = Imgproc.getStructuringElement(Imgproc.MORPH_ELLIPSE, new org.opencv.core.Size(10,10)); 
 
-		Imgproc.cvtColor(frame, grayFrame, Imgproc.COLOR_BGR2GRAY);
+	    Imgproc.cvtColor(frame, grayFrame, Imgproc.COLOR_BGR2GRAY);
 
-		Core.absdiff(grayFrame, background, absDiff);
+	    Imgproc.morphologyEx(grayFrame, blackHat, Imgproc.MORPH_BLACKHAT, morphKernel);
+	    Core.subtract(grayFrame, blackHat, grayFrame);
 
-		Imgproc.GaussianBlur(absDiff, blurred, new org.opencv.core.Size(9, 9), 6);
-		Mat m = increaseContrast(blurred, 10.0, 5.);
+	    Imgproc.GaussianBlur(grayFrame, blurred, new org.opencv.core.Size(7, 7), 1.5, 1.5);
 
-		Imgproc.HoughCircles(m, circles, Imgproc.HOUGH_GRADIENT, 1.3, 30, 150, 30, 0, 200);
+	    // Param Explanation:
+	    // dp = 1.5 : Inverse ratio of resolution
+	    // minDist = 30 : Min distance between circle centers
+	    // param1 = 180 : Higher threshold for edge detection (Canny)
+	    // param2 = 0.9 : Threshold for center detection (sensitivity)
+	    // minRadius = 10, maxRadius = 100 : Detect coins within size limits
+	    Imgproc.HoughCircles(blurred, circles, Imgproc.HOUGH_GRADIENT, 1.5, 30, 100, 0.9, 15, 30);
 
-		if (!circles.empty()) {
-			System.out.println("circles!");
-			double[] circleData = circles.get(0, 0);
-			if (circleData != null && circleData.length >= 3) {
-				int x = (int) circleData[0];
-				int y = (int) circleData[1];
-				int radius = (int) circleData[2];
-				return new Circle(new Point(x, y), radius);
-			}
-		}
-		return null;
+	    if (!circles.empty()) {
+	        System.out.println("Detected circles!");
+	        double[] circleData = circles.get(0, 0);
+	        if (circleData != null && circleData.length >= 3) {
+	            int x = (int) circleData[0];
+	            int y = (int) circleData[1];
+	            int radius = (int) circleData[2];
+
+	            // 8️⃣ **Draw detected circle on the frame**
+	            
+	            return new Circle(new Point(x, y), radius);
+	        }
+	    }
+
+
+	    
+	    return null;
 	}
 
 	public Mat displayCircles(Mat frame, List<Point> centers, List<Integer> radius, List<Boolean> teamid) {
