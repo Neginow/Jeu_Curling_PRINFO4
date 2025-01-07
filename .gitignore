@@ -1,5 +1,5 @@
-# Created by https://www.toptal.com/developers/gitignore/api/eclipse,java,maven,opencv,matlab
-# Edit at https://www.toptal.com/developers/gitignore?templates=eclipse,java,maven,opencv,matlab
+# Created by https://www.toptal.com/developers/gitignore/api/maven,java,windows,linux,opencv,eclipse,matlab
+# Edit at https://www.toptal.com/developers/gitignore?templates=maven,java,windows,linux,opencv,eclipse,matlab
 
 ### Eclipse ###
 .metadata
@@ -129,6 +129,39 @@ octave-workspace
 # Ignore pom.xml
 pom.xml
 
+### MATLAB ###
+# Windows default autosave extension
+*.asv
+
+# OSX / *nix default autosave extension
+*.m~
+
+# Compiled MEX binaries (all platforms)
+*.mex*
+
+# Packaged app and toolbox files
+*.mlappinstall
+*.mltbx
+
+# Generated helpsearch folders
+helpsearch*/
+
+# Simulink code generation folders
+slprj/
+sccprj/
+
+# Matlab code generation folders
+codegen/
+
+# Simulink autosave extension
+*.autosave
+
+# Simulink cache files
+*.slxc
+
+# Octave session info
+octave-workspace
+
 ### Maven ###
 target/
 pom.xml.tag
@@ -157,4 +190,30 @@ buildNumber.properties
 */cmake_install.cmake
 .DS_Store
 
-# End of https://www.toptal.com/developers/gitignore/api/eclipse,java,maven,opencv,matlab
+### Windows ###
+# Windows thumbnail cache files
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+
+# Dump file
+*.stackdump
+
+# Folder config file
+[Dd]esktop.ini
+
+# Recycle Bin used on file shares
+$RECYCLE.BIN/
+
+# Windows Installer files
+*.cab
+*.msi
+*.msix
+*.msm
+*.msp
+
+# Windows shortcuts
+*.lnk
+
+# End of https://www.toptal.com/developers/gitignore/api/maven,java,windows,linux,opencv,eclipse,matlab
