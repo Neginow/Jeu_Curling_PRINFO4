@@ -1,45 +1,55 @@
-function [centresPieces, radiiPieces, distancesCible] = tour(img, fond, centresPieces, radiiPieces, cible, distancesCible, i)
-% Prend en entrée les variables de la partie et renvoie la liste des centres des pièces jouées dans la partie mise à
-% jour après le tour
+function [centresPieces, radiisPieces, distancesCible] = tour(img, centresPieces, radiisPieces, cible, distancesCible, k)
+    % Affichage image + cible
+    figure(k);
+    imshow(img);
+    hold on;
+    plot(cible(1), cible(2), '+g', 'MarkerSize', 15);
 
-% Affichage image + cible
-figure(i);
-imshow(img);
-hold on ;
-plot(cible(1), cible(2), '+r', 'MarkerSize',15) ;
+    % Recherche de la pièce
+    circle = detectToken(img); % Detecte le jeton (circle est une structure)
 
-% Recherche de la pièce
-sansFond = imabsdiff(img, fond) ;
-sansFond = imadjust(rgb2gray(sansFond)) ;
+    % Vérification du type et de l'existence de 'Center' et 'Radius' dans circle
+    if ~isstruct(circle) || ~isfield(circle, 'Center') || isempty(circle.Center) || ~isfield(circle, 'Radius') || isempty(circle.Radius)
+        disp('Aucun cercle détecté ou format incorrect.');
+        return; % Si circle n'est pas valide, on quitte la fonction
+    end
 
-[center, radii] = imfindcircles(sansFond, [10 20], 'ObjectPolarity', 'bright', 'Sensitivity', 0.95);
-% Elimination des chevauchements avec les anciennes
-indices = indOverlap(center, radii(1), centresPieces, radiiPieces) ;
-centresPieces(indices,:) = [] ;
-radiiPieces(indices) = [] ;
-distancesCible(indices) = [] ;
+    % Elimination des chevauchements avec les anciennes
+    indices = indOverlap(circle, centresPieces); % Passe circle comme une structure
+    centresPieces(indices,:) = []; % Élimine les cercles qui chevauchent
+    radiisPieces(indices,:) = []; % Élimine les rayons qui correspondants
+    distancesCible(indices) = []; % Élimine les distances correspondantes
 
-% Ajout de la pièce jouée
-centresPieces(end+1,:) = center(1,:) ;
-radiiPieces(end+1) = radii(1) ;
-distancesCible(end+1) = distance2(center(1,:), cible) ;
+    % Ajout de la pièce jouée
+    centresPieces(end+1) = [circle.Center(1), circle.Center(2)];
+    radiisPieces(end+1) = circle.Radius;  % Ajoute le rayon sous forme de champ
+    distancesCible(end+1) = distance2([circle.Center], cible); % Calcul de la distance
 
-disp(distancesCible(end)) ;
+    % Détermination de la couleur
+    if mod(k, 2) == 0
+        couleur = 'r';
+    else
+        couleur = 'b';
+    end
 
-% Affichage de la solution
-viscircles(centresPieces, radiiPieces, 'EdgeColor', 'b');
+    % Affichage de la solution
+    viscircles(centresPieces, radiisPieces, 'EdgeColor', couleur);
 
-% Remplissage des cercles détectés pour l'esthétique
-for i = 1:size(centresPieces, 1)
-    theta = linspace(0, 2*pi, 100);
-    x = centresPieces(i, 1) + radiiPieces(i) * cos(theta);
-    y = centresPieces(i, 2) + radiiPieces(i) * sin(theta);
-    fill(x, y, 'b', 'FaceAlpha', 0.8, 'EdgeColor', 'none'); % Rond plein bleu semi-transparent
-end
+    % Remplissage des cercles détectés pour l'esthétique
+    for i = 1:length(centresPieces)
+        center = centresPieces(i) ; % [x, y]
+        radius = radiisPieces(i) ;
+        
+        % Utiliser viscircles pour dessiner chaque cercle
+        viscircles(center, radius, 'EdgeColor', 'b', 'LineWidth', 2);
 
-hold off ;
+        for i = 1:size(center, 1)
+            theta = linspace(0, 2*pi, 100);
+            x = center(i, 1) + radius(i) * cos(theta);
+            y = center(i, 2) + radius(i) * sin(theta);
+            fill(x, y, 'b', 'FaceAlpha', 0.8, 'EdgeColor', 'none'); % Rond plein bleu semi-transparent
+        end
+    end
 
-
-
-
+    hold off;
 end

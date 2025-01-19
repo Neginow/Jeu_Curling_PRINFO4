@@ -1,86 +1,22 @@
 %% Prototype Matlab
 
-% Le prototype se sert d'une image en entrée pour créer une cible sur
-% ordinateur, repérer le jeton joué, créer le rond correspondant et
-% calculer sa distance à la cible.
+%% Test de la détection sur une image
 
-% Ici on se place dans le cas ou la cible est uniquement virtuelle.
+img = imread("Images\down_red_low_clear1.jpg") ;
 
-%% Test avec une image
-fond1 = imread("ImagesTrepiedTest\Fond.jpeg") ;
-img = imread("ImagesTrepiedTest\Trepied1_3.jpeg") ;
-
-figure; 
-imshow(img)
-
-gray_fond = rgb2gray(fond1) ;
-gray_img = rgb2gray(img) ;
-
-sansFond = imabsdiff(img, fond1) ;
-sansFond = imadjust(rgb2gray(sansFond)) ;
-figure ;
-imshow(sansFond) ;
+circle = detectToken(img) ;
+displayToken(img, circle) ;
 
 
-[centers, radii] = imfindcircles(sansFond, [10 20], 'ObjectPolarity', 'bright', 'Sensitivity', 0.95);
+%% Test de la détection sur la base d'images
 
-figure;
-imshow(img) ;
-viscircles(centers, radii, 'EdgeColor', 'b');
+Pictures = dir("Images/*.jpg") ;
 
-%% Logique de jeu
-
-% Initialisation des variables
-fond1 = imread("ImagesTrepiedTest\Fond.jpeg") ;
-fond2 = imread("ImagesTrepiedTest\Fond2.jpeg") ;
-
-centresPieces = [] ;
-radiiPieces = [] ;
-
-cible = [339, 207] ;
-distancesCible = [] ;
-
-% Affichage de la cible
-figure ;
-imshow(fond1) ;
-hold on ;
-plot(cible(1), cible(2), '+r', 'MarkerSize',15) ;
-hold off ;
-
-
-for i = 1:6
-    filename = fullfile('ImagesTrepiedTest', sprintf('Trepied1_%d.jpeg', i));
-    img = imread(filename);
-
-    [nouveauxCentres, nouveauxRadii, nouvellesDistances] = tour(img, fond1, centresPieces, radiiPieces, cible, distancesCible, 1) ;
-    centresPieces = nouveauxCentres ; 
-    radiiPieces = nouveauxRadii ;
-    distancesCible = nouvellesDistances ;
+for i = 1:length(Pictures)
+    % Lecture de l'image
+    img = imread(strcat("Images/", Pictures(i).name)) ;
+    
+    circle = detectToken(img) ;
+    displayToken(img, circle) ;
 end
 
-%% 2e série d'image
-fond2 = imread("ImagesTrepiedTest\Fond2.jpeg") ;
-
-centresPieces = [] ;
-radiiPieces = [] ;
-
-cible = [339, 207] ;
-distancesCible = [] ;
-
-% Affichage de la cible
-figure ;
-imshow(fond2) ;
-hold on ;
-plot(cible(1), cible(2), '+r', 'MarkerSize',15) ;
-hold off ;
-
-
-for i = 2:7
-    filename = fullfile('ImagesTrepiedTest', sprintf('Trepied2_%d.jpeg', i));
-    img = imread(filename);
-
-    [nouveauxCentres, nouveauxRadii, nouvellesDistances] = tour(img, fond2, centresPieces, radiiPieces, cible, distancesCible, 2) ;
-    centresPieces = nouveauxCentres ; 
-    radiiPieces = nouveauxRadii ;
-    distancesCible = nouvellesDistances ;
-end
