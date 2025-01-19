@@ -1,15 +1,22 @@
+/*
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
+ */
 package testopenCV;
 
 import org.opencv.core.Point;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 
 public class GameManager {
 
-	public int scoreGameRED;
+    public int scoreGameRED;
     public int scoreGameBLUE;
+    public int avLive ;
+    
 
     private Point target;
 
@@ -18,7 +25,7 @@ public class GameManager {
     private final List<Boolean> teamid;
     private int turnCounts;
     
-    
+    // Constructeurs
     public GameManager() {
         this.target = new Point(0, 0);
         this.centers = Collections.synchronizedList(new ArrayList<>());
@@ -39,7 +46,7 @@ public class GameManager {
         turnCounts = 0;
     }
 
-
+    // Gestion des chevauchements
     private int circlesOverlapping(Point center, Integer radius) {
         for (int i = 0; i < centers.size(); i++) {
             if (twoCirclesOverlapping(center, radius, this.centers.get(i), this.radius.get(i))) {
@@ -64,16 +71,21 @@ public class GameManager {
         double A_intersection = (Math.pow(newRadius, 2) * t1) + (Math.pow(radius, 2) * t2) - t3;
         return A_intersection > 0.05 * A_newCircle;
     }
+    
+    // Calcul de la distance entre deux points
     private Double dist(Point A, Point B){
     	
     	return Math.sqrt(Math.pow(A.x - B.x, 2) + Math.pow(A.y - B.y, 2));
     }
+    
+    // Suppression d'un cercle
     public void removeCircle(int i) {
         centers.remove(i);
         radius.remove(i);
         teamid.remove(i);
     }
 
+    // Ajout d'un cercle
     public void addCircle(Point newCenter, Integer newRadius) {
         int v = circlesOverlapping(newCenter, newRadius);
         if (v >= 0) {
@@ -82,41 +94,56 @@ public class GameManager {
         centers.add(newCenter);
         radius.add(newRadius);
         teamid.add(turnCounts % 2 == 0);
+        winnerLive();
         turnCounts++;
-    }
+    } 
     
-    public boolean getWinner() {
+    // Score Live
+    public void winnerLive() {
         if (centers.isEmpty()) {
             throw new IllegalStateException("Normalement impossible de voir ce message");
         }
-
-        int minIndex = 0; 
-        double minDistance = 1000000;
-        for (int i = 1; i < centers.size(); i++) {
-            double distance = dist(centers.get(i), target);
-            if (distance < minDistance) {
-                minDistance = distance;
-                minIndex = i;
+        List<Integer> indices = new ArrayList<>();
+        for (int i = 0; i < centers.size(); i++) {
+            indices.add(i);
+        }
+        indices.sort((i1, i2) -> Double.compare(
+            dist(centers.get(i1), target), 
+            dist(centers.get(i2), target)
+        ));
+        int c = 1; 
+        boolean currentTeam = teamid.get(indices.get(0)); 
+        
+        for (int i = 1; i < indices.size(); i++) {
+            if (teamid.get(indices.get(i)) == currentTeam) {
+                c++;
+            } else {
+                break;
             }
         }
-
-        return teamid.get(minIndex); 
+        avLive = currentTeam ? c : -c; 
     }
 
+    
+
+    // Passage à la partie suivante
     public void update() {
-        if (turnCounts == 16) {
+        if (turnCounts == 6) {
         	turnCounts = 0;
-        	if(getWinner()) {
-        		scoreGameRED ++;
+        	if(avLive < 0) {
+        		scoreGameRED -= avLive;
         	} else {
-        		scoreGameBLUE ++;
+        		scoreGameBLUE += avLive;
         	}
+            avLive = 0 ;    
         	centers.clear();
         	radius.clear();
         	teamid.clear();
         }
     }
     
+    
+    // Getters Setters
     public List<Point> getCenters() {
         return new ArrayList<>(centers);
     }

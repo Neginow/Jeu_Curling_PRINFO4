@@ -1,0 +1,63 @@
+%% Prototype Matlab
+
+% Le prototype se sert d'une image en entrée pour créer une cible sur
+% ordinateur, repérer le jeton joué, créer le rond correspondant et
+% calculer sa distance à la cible.
+
+% Ici on se place dans le cas ou la cible est uniquement virtuelle.
+
+%% Cas Image1
+
+% Lire l'image
+img1 = imread('Images/Image1.jpg'); % Remplace 'nom_image.jpg' par le nom de ton fichier
+
+% Convertir l'image en niveaux de gris
+gray_img1 = rgb2gray(img1);
+
+% Appliquer une transformation de Hough pour détecter les cercles
+% Ajuster les valeurs de rayon min et max pour s'adapter à la taille de la pièce
+[centers, radii] = imfindcircles(gray_img1, [90 200], 'ObjectPolarity', 'bright', 'Sensitivity', 0.95);
+
+% On ne garde que le cercle le plus grand car le contour de la pièce est
+% le cercle le plus grand de l'image.
+[~,indMax] = max(radii) ;
+
+% Print les coordonnées du centre.
+centers(1,:)
+
+% Afficher l'image, le centre et le cercle détecté.
+figure;
+imshow(img1);
+hold on;
+viscircles(centers(indMax, :), radii(indMax), 'EdgeColor', 'b');
+plot(centers(1,1), centers(1,2), 'r+', 'MarkerSize', 15, 'LineWidth', 2); % Seulement pour vérifier l'algo mais pas utile dans le proto.
+hold off;
+
+
+%% Cas trépied
+
+%% Fond
+fond = imread("ImagesTrepiedTest\Fond.jpg");
+enhancedFond = imadjust(rgb2gray(fond)) ;
+
+[centersFond, radiiFond] = imfindcircles(enhancedFond, [10 100], 'bright', 'Sensitivity', 0.95) ;
+
+%% Image
+img = imread("ImagesTrepiedTest\Image5.jpg") ;
+enhancedImage = imadjust(rgb2gray(img));
+
+figure ; 
+imshow(enhancedImage);
+
+[centers, radii] = imfindcircles(enhancedImage, [5 100], 'ObjectPolarity', 'bright', 'Sensitivity', 0.9);
+
+%% Retrait des cercles communs avec le fond
+estDansFond,é]
+
+
+%% Affichage de la solution
+figure;
+imshow(img);
+hold on;
+viscircles(centers, radii, 'EdgeColor', 'b');
+hold off;
