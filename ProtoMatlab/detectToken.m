@@ -1,11 +1,10 @@
-function circle = detectToken(frame)
+function [circle, centre, rayon] = detectToken(frame)
     % Initialisation des matrices
     grayFrame = rgb2gray(frame); % Conversion en niveaux de gris
     morphKernel = strel('disk', 10); % Élément structurant en ellipse (équivalent à Size(10,10))
 
     % Application du filtre Blackhat
     blackHat = imtophat(grayFrame, morphKernel);
-    grayFrame = imsubtract(grayFrame, blackHat);
 
     % Augmenter le contraste - Fonction utilisateur
     m = increaseContrast(blackHat, 2.0, 5.0);
@@ -32,10 +31,11 @@ function circle = detectToken(frame)
         
         % Retourner la structure Circle
         circle = struct('Center', [x, y], 'Radius', radius);
+        centre = [x, y] ;
+        rayon = radius ;
     else
         % Si aucun cercle n'est détecté, retourner une structure vide avec des champs
         circle = struct('Center', [], 'Radius', []);
-        disp(circle); % Affiche la structure de circle
     end
 end
 
