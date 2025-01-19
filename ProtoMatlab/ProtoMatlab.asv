@@ -6,58 +6,152 @@
 
 % Ici on se place dans le cas ou la cible est uniquement virtuelle.
 
-%% Cas Image1
+%% Test avec une image
+fond1 = imread("ImagesTrepiedTest\Fond.jpeg") ;
+img = imread("ImagesTrepiedTest\Trepied1_3.jpeg") ;
 
-% Lire l'image
-img1 = imread('Images/Image1.jpg'); % Remplace 'nom_image.jpg' par le nom de ton fichier
+figure; 
+imshow(img)
 
-% Convertir l'image en niveaux de gris
-gray_img1 = rgb2gray(img1);
+gray_fond = rgb2gray(fond1) ;
+gray_img = rgb2gray(img) ;
 
-% Appliquer une transformation de Hough pour détecter les cercles
-% Ajuster les valeurs de rayon min et max pour s'adapter à la taille de la pièce
-[centers, radii] = imfindcircles(gray_img1, [90 200], 'ObjectPolarity', 'bright', 'Sensitivity', 0.95);
+sansFond = imabsdiff(img, fond1) ;
+sansFond = imadjust(rgb2gray(sansFond)) ;
+figure ;
+imshow(sansFond) ;
 
-% On ne garde que le cercle le plus grand car le contour de la pièce est
-% le cercle le plus grand de l'image.
-[~,indMax] = max(radii) ;
 
-% Print les coordonnées du centre.
-centers(1,:)
+[centers, radii] = imfindcircles(sansFond, [10 20], 'ObjectPolarity', 'bright', 'Sensitivity', 0.95);
 
-% Afficher l'image, le centre et le cercle détecté.
 figure;
-imshow(img1);
-hold on;
-viscircles(centers(indMax, :), radii(indMax), 'EdgeColor', 'b');
-plot(centers(1,1), centers(1,2), 'r+', 'MarkerSize', 15, 'LineWidth', 2); % Seulement pour vérifier l'algo mais pas utile dans le proto.
-hold off;
-
-
-%% Cas trépied
-
-%% Fond
-fond = imread("ImagesTrepiedTest\Fond.jpg");
-enhancedFond = imadjust(rgb2gray(fond)) ;
-
-[centersFond, radiiFond] = imfindcircles(enhancedFond, [10 100], 'bright', 'Sensitivity', 0.95) ;
-
-%% Image
-img = imread("ImagesTrepiedTest\Image5.jpg") ;
-enhancedImage = imadjust(rgb2gray(img));
-
-figure ; 
-imshow(enhancedImage);
-
-[centers, radii] = imfindcircles(enhancedImage, [5 100], 'ObjectPolarity', 'bright', 'Sensitivity', 0.9);
-
-%% Retrait des cercles communs avec le fond
-estDansFond,é]
-
-
-%% Affichage de la solution
-figure;
-imshow(img);
-hold on;
+imshow(img) ;
 viscircles(centers, radii, 'EdgeColor', 'b');
-hold off;
+
+%% Logique de jeu
+
+% Initialisation des variables
+fond1 = imread("ImagesTrepiedTest\Fond.jpeg") ;
+fond2 = imread("ImagesTrepiedTest\Fond2.jpeg") ;
+
+centresPieces = [] ;
+radiiPieces = [] ;
+
+cible = [339, 207] ;
+distancesCible = [] ;
+
+% Affichage de la cible
+figure ;
+imshow(fond1) ;
+hold on ;
+plot(cible(1), cible(2), '+r', 'MarkerSize',15) ;
+hold off ;
+
+
+for i = 1:6
+    filename = fullfile('ImagesTrepiedTest', sprintf('Trepied1_%d.jpeg', i));
+    img = imread(filename);
+
+    [nouveauxCentres, nouveauxRadii, nouvellesDistances] = tour(img, fond1, centresPieces, radiiPieces, cible, distancesCible, 1) ;
+    centresPieces = nouveauxCentres ; 
+    radiiPieces = nouveauxRadii ;
+    distancesCible = nouvellesDistances ;
+end
+
+%% 2e série d'image
+fond2 = imread("ImagesTrepiedTest\Fond2.jpeg") ;
+
+centresPieces = [] ;
+radiiPieces = [] ;
+
+cible = [339, 207] ;
+distancesCible = [] ;
+
+% Affichage de la cible
+figure ;
+imshow(fond2) ;
+hold on ;
+plot(cible(1), cible(2), '+r', 'MarkerSize',15) ;
+hold off ;
+
+
+for i = 2:7
+    filename = fullfile('ImagesTrepiedTest', sprintf('Trepied2_%d.jpeg', i));
+    img = imread(filename);
+
+    [nouveauxCentres, nouveauxRadii, nouvellesDistances] = tour(img, fond2, centresPieces, radiiPieces, cible, distancesCible, 2) ;
+    centresPieces = nouveauxCentres ; 
+    radiiPieces = nouveauxRadii ;
+    distancesCible = nouvellesDistances ;
+end
+
+%% Auto-calibrage de la pièce
+clear all;
+close all;
+
+fond1 = imread("ImagesTrepiedTest\Fond.jpeg") ;
+
+for i = 1:6
+    img = imread(fullfile('ImagesTrepiedTest', sprintf('Trepied1_%d.jpeg', i)));
+
+    sansFond = imabsdiff(img, fond1);
+    sansFond = rgb2gray(sansFond);
+    M = max(max(sansFond));
+    sansFond = sansFond*(255/M);
+    
+    sansFond=imfilter(sansFond,fspecial("average",[5 5]));
+    [Gmag,Gdir] = imgradient(sansFond);
+    sansFond=Gmag;
+    sansFond = imclearborder(sansFond);
+    M = max(max(sansFond));
+    sansFond = sansFond*(255/M);
+    
+    sansFond = sansFond>50;
+    sansFond = imopen(sansFond, strel('square', 3));
+    sansFond = imclose(sansFond, strel('disk', 50));
+    [sansFond,Gdir] = imgradient(sansFond);
+
+    [centers, radii] = imfindcircles(sansFond, [7 40], 'ObjectPolarity', 'bright', 'Sensitivity', 0.95);
+    [radiimax, imax] = max(radii);
+    radiimax
+    figure;
+    imshow(img) ;
+    viscircles(centers(imax, :), radiimax, 'EdgeColor', 'b');
+end
+
+%% Auto-calibrage de la pièce dans le noir
+clear all;
+close all;
+
+fond1 = imread("ImagesTrepiedTest\Fond2.jpeg") ;
+
+for i = 2:7
+    img = imread(fullfile('ImagesTrepiedTest', sprintf('Trepied2_%d.jpeg', i)));
+
+    sansFond = imabsdiff(img, fond1);
+    sansFond = rgb2gray(sansFond);
+    M = max(max(sansFond));
+    sansFond = sansFond*(255/M);
+    
+    sansFond=imfilter(sansFond,fspecial("average",[5 5]));
+    [Gmag,Gdir] = imgradient(sansFond);
+    sansFond=Gmag;
+    sansFond = imclearborder(sansFond);
+    M = max(max(sansFond));
+    sansFond = sansFond*(255/M);
+    
+    sansFond = sansFond>50;
+    sansFond = imopen(sansFond, strel('square', 3));
+    sansFond = imclose(sansFond, strel('disk', 50));
+    [sansFond,Gdir] = imgradient(sansFond);
+    
+    [centers, radii] = imfindcircles(sansFond, [7 40], 'ObjectPolarity', 'bright', 'Sensitivity', 0.95);
+    [radiimax, imax] = max(radii);
+    radiimax
+
+    figure;
+    imshow(img);
+    viscircles(centers(imax, :), radiimax, 'EdgeColor', 'b');
+end
+
+
