@@ -192,14 +192,20 @@ public class TokenDetector {
 		Mat blurred = new Mat();
 		Mat circles = new Mat();
 
-		Imgproc.cvtColor(frame, grayFrame, Imgproc.COLOR_BGR2GRAY);
+	    Imgproc.cvtColor(frame, grayFrame, Imgproc.COLOR_BGR2GRAY);
 
-		Core.absdiff(grayFrame, background, absDiff);
+	    Imgproc.morphologyEx(grayFrame, blackHat, Imgproc.MORPH_BLACKHAT, morphKernel);
+	    Core.subtract(grayFrame, blackHat, grayFrame);
 
-		Imgproc.GaussianBlur(absDiff, blurred, new org.opencv.core.Size(9, 9), 6);
-		Mat m = increaseContrast(blurred, 10.0, 5.);
+	    Imgproc.GaussianBlur(grayFrame, blurred, new org.opencv.core.Size(7, 7), 1.5, 1.5);
 
-		Imgproc.HoughCircles(m, circles, Imgproc.HOUGH_GRADIENT, 1.3, 30, 150, 30, 0, 200);
+	    // Param Explanation:
+	    // dp = 1.5 : Inverse ratio of resolution
+	    // minDist = 30 : Min distance between circle centers
+	    // param1 = 180 : Higher threshold for edge detection (Canny)
+	    // param2 = 0.9 : Threshold for center detection (sensitivity)
+	    // minRadius = 10, maxRadius = 100 : Detect coins within size limits
+	    Imgproc.HoughCircles(blurred, circles, Imgproc.HOUGH_GRADIENT, 1.5, 30, 100, 0.9, 15, 30);
 
 		if (!circles.empty()) {
 			System.out.println("Found !");
