@@ -414,13 +414,16 @@ public class SecondaryController {
     }
 
     private void showFPS() {
-        if (System.nanoTime() - lastFpsCheck >= 1000000000) { // 1 second interval
-            currentFPS = totalFrames;
-            totalFrames = 0; // Reset frame count for the next second
-            lastFpsCheck = System.nanoTime();
-            Platform.runLater(() -> fpsLabel.setText(String.format("FPS: %d", currentFPS)));
-        }
+    if (System.nanoTime() - lastFpsCheck >= 1000000000) { // 1-second interval
+        currentFPS = totalFrames;
+        double frameTimeMs = (totalFrames > 0) ? (1000.0 / totalFrames) : 0; // Frame time in ms
+        System.out.println(frameTimeMs + " ms");
+        totalFrames = 0; // Reset frame count for the next second
+        lastFpsCheck = System.nanoTime();
+        Platform.runLater(() -> fpsLabel.setText(String.format("FPS: %d", currentFPS)));
     }
+}
+
     private void resetTurnsRemaining(){
         if (gameEngine.getTurnCounts() == 2*nbTurns || gameEngine.getTurnCounts() == 0) {
             gameEngine.setTurnsRemainingRED(nbTurns);
