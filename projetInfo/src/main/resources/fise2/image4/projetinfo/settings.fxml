@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Spinner?>
+<?import javafx.scene.effect.Bloom?>
+<?import javafx.scene.effect.DropShadow?>
+<?import javafx.scene.effect.InnerShadow?>
+<?import javafx.scene.effect.Shadow?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.paint.Color?>
+<?import javafx.scene.shape.Circle?>
+<?import javafx.scene.text.Font?>
+<?import javafx.scene.text.Text?>
+
+<VBox alignment="CENTER" prefHeight="625" prefWidth="1125" spacing="20.0" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="fise2.image4.projetinfo.SettingsController">
+   <children>
+      <VBox alignment="CENTER" prefHeight="625" prefWidth="1125" spacing="20.0">
+         <children>
+            <AnchorPane prefHeight="611.0" prefWidth="1144.0">
+               <children>
+                  <Text fill="WHITE" layoutX="419.0" layoutY="118.0" strokeType="OUTSIDE" strokeWidth="0.0" style="-fx-font-family: 'Immortal', sans-serif;" text="Settings">
+                     <font>
+                        <Font size="96.0" />
+                     </font>
+                     <effect>
+                        <Bloom>
+                           <input>
+                              <DropShadow>
+                                 <color>
+                                    <Color red="0.43529412150382996" green="0.8588235378265381" blue="1.0" />
+                                 </color>
+                              </DropShadow>
+                           </input>
+                        </Bloom>
+                     </effect>
+                  </Text>
+                  <Circle fill="#0084ff00" layoutX="590.0" layoutY="413.0" radius="73.0" stroke="WHITE" strokeType="INSIDE" strokeWidth="50.0">
+                     <effect>
+                        <Shadow>
+                           <color>
+                              <Color red="1.0" green="1.0" blue="1.0" />
+                           </color>
+                        </Shadow>
+                     </effect>
+                  </Circle>
+                  <Button alignment="CENTER" contentDisplay="CENTER" layoutX="528.0" layoutY="349.0" onAction="#switchToMenu" prefHeight="128.0" prefWidth="123.0" style="-fx-background-radius: 135; -fx-background-color: #00FF00; -fx-font-family: 'Immortal', sans-serif; -fx-font-size: 55px;" text="X" textAlignment="RIGHT" textFill="WHITE" wrapText="true" fx:id="xButton">
+                     <font>
+                        <Font size="55.0" />
+                     </font>
+                     <effect>
+                        <Bloom threshold="0.8">
+                           <input>
+                              <InnerShadow blurType="ONE_PASS_BOX">
+                                 <color>
+                                    <Color red="1.0" green="1.0" blue="1.0" />
+                                 </color>
+                              </InnerShadow>
+                           </input>
+                        </Bloom>
+                     </effect>
+                  </Button>
+                  <Text fill="WHITE" layoutX="-25.0" layoutY="247.0" strokeType="OUTSIDE" strokeWidth="0.0" style="-fx-font-family: 'Immortal', sans-serif;" text="Set Amount Of Turns For Teams:" textAlignment="CENTER" wrappingWidth="1166.9333358764648">
+                     <font>
+                        <Font size="60.0" />
+                     </font>
+                     <effect>
+                        <Bloom>
+                           <input>
+                              <DropShadow>
+                                 <color>
+                                    <Color red="0.43529412150382996" green="0.8588235378265381" blue="1.0" />
+                                 </color>
+                              </DropShadow>
+                           </input>
+                        </Bloom>
+                     </effect>
+                  </Text>
+                  <Spinner fx:id="nbTurnsSpinner" layoutX="541.0" layoutY="278.0" prefHeight="17.0" prefWidth="98.0" />
+               </children>
+            </AnchorPane>
+         </children>
+         <padding>
+            <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
+         </padding>
+      </VBox>
+   </children>
+   <padding>
+      <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
+   </padding>
+</VBox>
